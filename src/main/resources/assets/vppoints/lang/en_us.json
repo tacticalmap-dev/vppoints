@@ -1,0 +1,26 @@
+﻿{
+  "block.vppoints.victory_point": "Victory Point",
+  "block.vppoints.normal_point": "Normal Point",
+  "block.vppoints.ammo_point": "Ammo Point",
+  "block.vppoints.oil_point": "Oil Point",
+  "item.vppoints.victory_point": "Victory Point",
+  "item.vppoints.normal_point": "Normal Point",
+  "item.vppoints.ammo_point": "Ammo Point",
+  "item.vppoints.oil_point": "Oil Point",
+  "key.categories.vppoints": "VP Points",
+  "key.vppoints.hud_config": "Open HUD Config",
+  "message.vppoints.victory_point.chunk_duplicate": "Only one Victory Point is allowed per chunk.",
+  "message.vppoints.victory_point.protected": "Victory Point is protected. OP permission required to break.",
+  "message.vppoints.capture_point.chunk_duplicate": "Only one capture point is allowed per chunk.",
+  "message.vppoints.capture_point.protected": "Capture point is protected. OP permission required to break.",
+  "hud.vppoints.ammo": "Ammo",
+  "hud.vppoints.oil": "Oil",
+  "hud.vppoints.return_to_map": "Return to Map",
+  "hud.vppoints.return_to_map_countdown": "Return to Map: %ss",
+  "hud.vppoints.point_status.neutral": "Neutral",
+  "hud.vppoints.point_status.contested": "Contested",
+  "hud.vppoints.point_status.capturing": "Capturing by %s (%s%%)",
+  "hud.vppoints.point_status.reverting": "Reverting %s influence (%s%%)",
+  "hud.vppoints.point_status.owned": "Owned by %s"
+}
+
