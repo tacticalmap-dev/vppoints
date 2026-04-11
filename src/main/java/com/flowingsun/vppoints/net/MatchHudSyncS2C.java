@@ -100,11 +100,30 @@ public class MatchHudSyncS2C {
         for (PointView p : pkt.points) {
             buf.writeBlockPos(p.pos);
             buf.writeFloat(p.progressSigned);
-            buf.writeUtf(p.ownerTeam == null ? "" : p.ownerTeam);
-            buf.writeBoolean(p.contested);
-            buf.writeBoolean(p.capturing);
+            // Owner is almost always null/teamA/teamB, so encode as tiny enum first.
+            String owner = p.ownerTeam;
+            if (owner == null) {
+                buf.writeByte(0);
+            } else if (owner.equals(pkt.teamA)) {
+                buf.writeByte(1);
+            } else if (owner.equals(pkt.teamB)) {
+                buf.writeByte(2);
+            } else {
+                buf.writeByte(3);
+                buf.writeUtf(owner);
+            }
+
+            int flags = 0;
+            if (p.contested) {
+                flags |= 1;
+            }
+            if (p.capturing) {
+                flags |= 1 << 1;
+            }
+            buf.writeByte(flags);
         }
-        buf.writeInt(pkt.returnToMapSeconds);
+        // Shift by +1 so -1 can also be packed as VarInt.
+        buf.writeVarInt(pkt.returnToMapSeconds + 1);
     }
 
     public static MatchHudSyncS2C decode(FriendlyByteBuf buf) {
@@ -124,12 +143,20 @@ public class MatchHudSyncS2C {
         for (int i = 0; i < size; i++) {
             BlockPos pos = buf.readBlockPos();
             float progress = buf.readFloat();
-            String owner = buf.readUtf();
-            boolean contested = buf.readBoolean();
-            boolean capturing = buf.readBoolean();
-            points.add(new PointView(pos, progress, owner.isEmpty() ? null : owner, contested, capturing));
+            int ownerCode = buf.readByte() & 0xFF;
+            String owner = switch (ownerCode) {
+                case 0 -> null;
+                case 1 -> teamA;
+                case 2 -> teamB;
+                case 3 -> buf.readUtf();
+                default -> null;
+            };
+            int flags = buf.readByte() & 0xFF;
+            boolean contested = (flags & 1) != 0;
+            boolean capturing = (flags & (1 << 1)) != 0;
+            points.add(new PointView(pos, progress, owner, contested, capturing));
         }
-        int returnToMapSeconds = buf.readInt();
+        int returnToMapSeconds = buf.readVarInt() - 1;
         return new MatchHudSyncS2C(mapId, teamA, colorA, pointsA, ammoA, oilA, teamB, colorB, pointsB, ammoB, oilB, points, returnToMapSeconds, true);
     }
 

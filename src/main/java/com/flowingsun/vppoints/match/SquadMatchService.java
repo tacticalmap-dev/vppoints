@@ -358,6 +358,7 @@ public final class SquadMatchService {
     }
 
     private void sendHudClear(ServerPlayer player) {
+        VictoryMatchManager.INSTANCE.invalidateHudCache(player.getUUID());
         SquadNetwork.sendTo(player, new MatchHudClearS2C());
     }
 

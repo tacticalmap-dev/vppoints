@@ -52,6 +52,7 @@ public final class VictoryMatchManager {
     }
 
     private final Map<String, MatchState> states = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> lastHudDigestByPlayer = new ConcurrentHashMap<>();
 
     private VictoryMatchManager() {
     }
@@ -74,6 +75,12 @@ public final class VictoryMatchManager {
 
     public void resetMap(String mapId) {
         states.remove(mapId);
+    }
+
+    public void invalidateHudCache(UUID playerId) {
+        if (playerId != null) {
+            lastHudDigestByPlayer.remove(playerId);
+        }
     }
 
     public Optional<MatchScoreView> scoreOf(String mapId) {
@@ -177,22 +184,60 @@ public final class VictoryMatchManager {
             }
             pointsByWorld.computeIfAbsent(point.getLevel().dimension().location(), k -> new ArrayList<>()).add(point);
         }
+        for (List<VictoryPointBlockEntity> points : pointsByMap.values()) {
+            points.sort(Comparator.comparingLong(be -> be.getBlockPos().asLong()));
+        }
+        for (List<VictoryPointBlockEntity> points : pointsByWorld.values()) {
+            points.sort(Comparator.comparingLong(be -> be.getBlockPos().asLong()));
+        }
+        refreshMatchPointSnapshots(pointsByMap, pointsByWorld);
 
+        Set<UUID> onlinePlayers = new HashSet<>();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            onlinePlayers.add(player.getUUID());
             Optional<SquadMatchService.PlayerMatchContext> c = SquadMatchService.INSTANCE.contextFor(player);
             if (c.isEmpty()) {
+                lastHudDigestByPlayer.remove(player.getUUID());
                 continue;
             }
             MatchState st = states.get(c.get().mapId());
             if (st == null) {
+                lastHudDigestByPlayer.remove(player.getUUID());
                 continue;
             }
-            st.points.clear();
-            List<VictoryPointBlockEntity> orderedPoints = new ArrayList<>(pointsByMap.getOrDefault(st.mapId, List.of()));
-            if (orderedPoints.isEmpty() && st.worldId != null) {
-                orderedPoints.addAll(pointsByWorld.getOrDefault(st.worldId, List.of()));
+
+            int returnToMapSeconds = SquadMatchService.INSTANCE.returnToMapSecondsForHud(player);
+            int digest = computeHudDigest(st, returnToMapSeconds);
+            Integer lastDigest = lastHudDigestByPlayer.get(player.getUUID());
+            if (lastDigest != null && lastDigest == digest) {
+                continue;
             }
-            orderedPoints.sort(Comparator.comparingLong(be -> be.getBlockPos().asLong()));
+            lastHudDigestByPlayer.put(player.getUUID(), digest);
+
+            SquadNetwork.sendTo(player, new MatchHudSyncS2C(
+                    st.mapId,
+                    st.teamA.name, st.teamA.color, Math.max(0, st.pointsA), st.ammoA, st.oilA,
+                    st.teamB.name, st.teamB.color, Math.max(0, st.pointsB), st.ammoB, st.oilB,
+                    st.points,
+                    returnToMapSeconds
+            ));
+        }
+        lastHudDigestByPlayer.keySet().removeIf(uuid -> !onlinePlayers.contains(uuid));
+    }
+
+    private void refreshMatchPointSnapshots(
+            Map<String, List<VictoryPointBlockEntity>> pointsByMap,
+            Map<ResourceLocation, List<VictoryPointBlockEntity>> pointsByWorld
+    ) {
+        for (MatchState st : states.values()) {
+            st.points.clear();
+            List<VictoryPointBlockEntity> orderedPoints = pointsByMap.get(st.mapId);
+            if ((orderedPoints == null || orderedPoints.isEmpty()) && st.worldId != null) {
+                orderedPoints = pointsByWorld.get(st.worldId);
+            }
+            if (orderedPoints == null || orderedPoints.isEmpty()) {
+                continue;
+            }
             for (VictoryPointBlockEntity be : orderedPoints) {
                 if (!be.getPointType().showInTopHud()) {
                     continue;
@@ -205,14 +250,32 @@ public final class VictoryMatchManager {
                 ps.capturing = be.isCapturing();
                 st.points.add(ps);
             }
-            SquadNetwork.sendTo(player, new MatchHudSyncS2C(
-                    st.mapId,
-                    st.teamA.name, st.teamA.color, Math.max(0, st.pointsA), st.ammoA, st.oilA,
-                    st.teamB.name, st.teamB.color, Math.max(0, st.pointsB), st.ammoB, st.oilB,
-                    st.points,
-                    SquadMatchService.INSTANCE.returnToMapSecondsForHud(player)
-            ));
         }
+    }
+
+    private static int computeHudDigest(MatchState st, int returnToMapSeconds) {
+        int hash = 1;
+        hash = 31 * hash + Objects.hashCode(st.mapId);
+        hash = 31 * hash + Objects.hashCode(st.teamA.name);
+        hash = 31 * hash + st.teamA.color;
+        hash = 31 * hash + Math.round(Math.max(0, st.pointsA));
+        hash = 31 * hash + st.ammoA;
+        hash = 31 * hash + st.oilA;
+        hash = 31 * hash + Objects.hashCode(st.teamB.name);
+        hash = 31 * hash + st.teamB.color;
+        hash = 31 * hash + Math.round(Math.max(0, st.pointsB));
+        hash = 31 * hash + st.ammoB;
+        hash = 31 * hash + st.oilB;
+        hash = 31 * hash + returnToMapSeconds;
+        hash = 31 * hash + st.points.size();
+        for (PointSnapshot p : st.points) {
+            hash = 31 * hash + Long.hashCode(p.pos);
+            hash = 31 * hash + Float.floatToIntBits(p.progress);
+            hash = 31 * hash + Objects.hashCode(p.ownerTeam);
+            hash = 31 * hash + (p.contested ? 1 : 0);
+            hash = 31 * hash + (p.capturing ? 1 : 0);
+        }
+        return hash;
     }
 }
 

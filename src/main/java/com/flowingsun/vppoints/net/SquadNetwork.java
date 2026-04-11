@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 public final class SquadNetwork {
 
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "2";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(VpPointsMod.MOD_ID, "main"),
             () -> PROTOCOL,
