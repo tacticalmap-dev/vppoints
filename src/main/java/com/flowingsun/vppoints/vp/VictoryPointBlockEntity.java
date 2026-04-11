@@ -127,7 +127,16 @@ public class VictoryPointBlockEntity extends BlockEntity {
         }
 
         float prev = progressSigned;
-        progressSigned = contested ? clamp(progressSigned + delta, -1F, 1F) : Math.abs(progressSigned) < Math.abs(delta) ? 0 : progressSigned + delta;
+        if (contested) {
+            // During contested state we still keep the signed value bounded for renderer/HUD stability.
+            progressSigned = clamp(progressSigned + delta, -1F, 1F);
+        } else if (diff == 0 && Math.abs(progressSigned) < Math.abs(delta)) {
+            // When nobody is present and progress decays toward neutral, snap tiny residual values to 0.
+            progressSigned = 0F;
+        } else {
+            // Active capture must always advance toward the owning side instead of being zeroed out.
+            progressSigned = clamp(progressSigned + delta, -1F, 1F);
+        }
 
         if (progressSigned == 1F) {
             ownerTeam = teamA;
