@@ -1,5 +1,6 @@
 package com.flowingsun.vppoints.match;
 
+import com.flowingsun.vppoints.config.SquadConfig;
 import com.flowingsun.vppoints.integration.FtbTeamsCompat;
 import com.flowingsun.vppoints.net.MatchHudClearS2C;
 import com.flowingsun.vppoints.net.SquadNetwork;
@@ -28,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class SquadMatchService {
     private static final int RETURN_MAP_WARNING_RANGE_BLOCKS = 8;
-    private static final int RETURN_MAP_COUNTDOWN_SECONDS = 30;
 
     public static final SquadMatchService INSTANCE = new SquadMatchService();
 
@@ -298,7 +298,7 @@ public final class SquadMatchService {
             long now = server == null ? 0L : server.getTickCount();
             Long deadline = outOfBoundsDeadlineTickByPlayer.get(player.getUUID());
             if (deadline == null) {
-                return RETURN_MAP_COUNTDOWN_SECONDS;
+                return outOfBoundsCountdownSeconds();
             }
             int seconds = (int) Math.ceil((deadline - now) / 20.0D);
             return Math.max(1, seconds);
@@ -390,7 +390,7 @@ public final class SquadMatchService {
             if (isOutsideBounds(player.getX(), player.getZ(), match.bounds)) {
                 long deadline = outOfBoundsDeadlineTickByPlayer.computeIfAbsent(
                         playerId,
-                        ignored -> now + RETURN_MAP_COUNTDOWN_SECONDS * 20L
+                        ignored -> now + outOfBoundsCountdownSeconds() * 20L
                 );
                 if (now >= deadline) {
                     outOfBoundsDeadlineTickByPlayer.remove(playerId);
@@ -417,6 +417,10 @@ public final class SquadMatchService {
         double dBottom = (bounds.maxZ + 1.0D) - z;
         double nearest = Math.min(Math.min(dLeft, dRight), Math.min(dTop, dBottom));
         return nearest <= RETURN_MAP_WARNING_RANGE_BLOCKS;
+    }
+
+    private static int outOfBoundsCountdownSeconds() {
+        return Math.max(1, SquadConfig.OUT_OF_BOUNDS_COUNTDOWN_SECONDS.get());
     }
 
     private static final class ActiveMatch {

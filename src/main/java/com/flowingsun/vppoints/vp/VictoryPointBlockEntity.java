@@ -101,7 +101,7 @@ public class VictoryPointBlockEntity extends BlockEntity {
         int a = countByTeam.getOrDefault(teamA, 0);
         int b = countByTeam.getOrDefault(teamB, 0);
         int diff = a - b;
-        float base = (float) (1.0D / SquadConfig.CAPTURE_SECONDS.get()) / 20.0F;
+        float base = (float) (1.0D / pointType.captureSeconds()) / 20.0F;
         float delta = 0F;
         int totalPlayers = a + b;
 

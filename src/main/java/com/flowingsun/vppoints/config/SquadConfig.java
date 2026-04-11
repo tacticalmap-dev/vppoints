@@ -13,9 +13,22 @@ public final class SquadConfig {
     public static final ForgeConfigSpec.IntValue INITIAL_VICTORY_POINTS;
     public static final ForgeConfigSpec.IntValue INITIAL_AMMO;
     public static final ForgeConfigSpec.IntValue INITIAL_OIL;
+    public static final ForgeConfigSpec.IntValue OUT_OF_BOUNDS_COUNTDOWN_SECONDS;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS;
+    public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_VICTORY;
+    public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_NORMAL;
+    public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_AMMO;
+    public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_OIL;
     public static final ForgeConfigSpec.DoubleValue DRAIN_PER_MINUTE;
     public static final ForgeConfigSpec.IntValue RESOURCE_CYCLE_SECONDS;
+    public static final ForgeConfigSpec.IntValue VICTORY_POINT_AMMO_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue VICTORY_POINT_OIL_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue NORMAL_POINT_AMMO_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue NORMAL_POINT_OIL_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue AMMO_POINT_AMMO_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue AMMO_POINT_OIL_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue OIL_POINT_AMMO_PER_CYCLE;
+    public static final ForgeConfigSpec.IntValue OIL_POINT_OIL_PER_CYCLE;
     public static final ForgeConfigSpec.BooleanValue DEBUG_MODE;
     public static final ForgeConfigSpec.BooleanValue DEBUG_CAPTURE_ACTIONBAR;
     public static final ForgeConfigSpec.BooleanValue DEBUG_CAPTURE_LOG;
@@ -35,12 +48,38 @@ public final class SquadConfig {
                 .defineInRange("initialAmmo", 0, 0, 1000000);
         INITIAL_OIL = common.comment("Initial team oil for each side in every match")
                 .defineInRange("initialOil", 0, 0, 1000000);
+        OUT_OF_BOUNDS_COUNTDOWN_SECONDS = common.comment("Seconds allowed outside map bounds before death")
+                .defineInRange("outOfBoundsCountdownSeconds", 30, 1, 600);
         CAPTURE_SECONDS = common.comment("Seconds required for 1 player advantage to fully capture a neutral point")
                 .defineInRange("captureSeconds", 15.0D, 1.0D, 300.0D);
+        CAPTURE_SECONDS_VICTORY = common.comment("Seconds required to fully capture a Victory point with 1 player advantage (-1 uses captureSeconds)")
+                .defineInRange("captureSecondsVictory", -1.0D, -1.0D, 300.0D);
+        CAPTURE_SECONDS_NORMAL = common.comment("Seconds required to fully capture a Normal point with 1 player advantage (-1 uses captureSeconds)")
+                .defineInRange("captureSecondsNormal", -1.0D, -1.0D, 300.0D);
+        CAPTURE_SECONDS_AMMO = common.comment("Seconds required to fully capture an Ammo point with 1 player advantage (-1 uses captureSeconds)")
+                .defineInRange("captureSecondsAmmo", -1.0D, -1.0D, 300.0D);
+        CAPTURE_SECONDS_OIL = common.comment("Seconds required to fully capture an Oil point with 1 player advantage (-1 uses captureSeconds)")
+                .defineInRange("captureSecondsOil", -1.0D, -1.0D, 300.0D);
         DRAIN_PER_MINUTE = common.comment("Point drain applied to enemy side for each owned point per minute")
                 .defineInRange("drainPerMinute", 25.0D, 0.1D, 1000.0D);
         RESOURCE_CYCLE_SECONDS = common.comment("Resource production cycle in seconds")
                 .defineInRange("resourceCycleSeconds", 30, 1, 300);
+        VICTORY_POINT_AMMO_PER_CYCLE = common.comment("Ammo produced per cycle by one owned Victory point")
+                .defineInRange("victoryPointAmmoPerCycle", 0, 0, 1000000);
+        VICTORY_POINT_OIL_PER_CYCLE = common.comment("Oil produced per cycle by one owned Victory point")
+                .defineInRange("victoryPointOilPerCycle", 0, 0, 1000000);
+        NORMAL_POINT_AMMO_PER_CYCLE = common.comment("Ammo produced per cycle by one owned Normal point")
+                .defineInRange("normalPointAmmoPerCycle", 5, 0, 1000000);
+        NORMAL_POINT_OIL_PER_CYCLE = common.comment("Oil produced per cycle by one owned Normal point")
+                .defineInRange("normalPointOilPerCycle", 3, 0, 1000000);
+        AMMO_POINT_AMMO_PER_CYCLE = common.comment("Ammo produced per cycle by one owned Ammo point")
+                .defineInRange("ammoPointAmmoPerCycle", 11, 0, 1000000);
+        AMMO_POINT_OIL_PER_CYCLE = common.comment("Oil produced per cycle by one owned Ammo point")
+                .defineInRange("ammoPointOilPerCycle", 0, 0, 1000000);
+        OIL_POINT_AMMO_PER_CYCLE = common.comment("Ammo produced per cycle by one owned Oil point")
+                .defineInRange("oilPointAmmoPerCycle", 0, 0, 1000000);
+        OIL_POINT_OIL_PER_CYCLE = common.comment("Oil produced per cycle by one owned Oil point")
+                .defineInRange("oilPointOilPerCycle", 11, 0, 1000000);
 
         common.push("debug");
         DEBUG_MODE = common.comment("Master switch for all debug output features")
