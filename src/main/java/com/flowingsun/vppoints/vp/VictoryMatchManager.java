@@ -25,6 +25,9 @@ public final class VictoryMatchManager {
     public record MatchScoreView(float pointsA, float pointsB) {
     }
 
+    public record TeamResourceView(String mapId, String teamName, float victoryPoints, int ammo, int oil) {
+    }
+
     public static final class PointSnapshot {
         public long pos;
         public float progress;
@@ -89,6 +92,51 @@ public final class VictoryMatchManager {
             return Optional.empty();
         }
         return Optional.of(new MatchScoreView(Math.max(0F, st.pointsA), Math.max(0F, st.pointsB)));
+    }
+
+    public Optional<TeamResourceView> resourceOf(String mapId, String teamName) {
+        if (mapId == null || mapId.isBlank() || teamName == null || teamName.isBlank()) {
+            return Optional.empty();
+        }
+        MatchState st = states.get(mapId);
+        if (st == null) {
+            return Optional.empty();
+        }
+        if (st.teamA.name.equals(teamName)) {
+            return Optional.of(new TeamResourceView(st.mapId, st.teamA.name, Math.max(0F, st.pointsA), Math.max(0, st.ammoA), Math.max(0, st.oilA)));
+        }
+        if (st.teamB.name.equals(teamName)) {
+            return Optional.of(new TeamResourceView(st.mapId, st.teamB.name, Math.max(0F, st.pointsB), Math.max(0, st.ammoB), Math.max(0, st.oilB)));
+        }
+        return Optional.empty();
+    }
+
+    public boolean adjustTeamResources(String mapId, String teamName, float victoryPointsDelta, int ammoDelta, int oilDelta) {
+        if (mapId == null || mapId.isBlank() || teamName == null || teamName.isBlank()) {
+            return false;
+        }
+        if (!Float.isFinite(victoryPointsDelta)) {
+            return false;
+        }
+
+        MatchState st = states.get(mapId);
+        if (st == null) {
+            return false;
+        }
+
+        if (st.teamA.name.equals(teamName)) {
+            st.pointsA = addAndClampNonNegative(st.pointsA, victoryPointsDelta);
+            st.ammoA = addAndClampNonNegative(st.ammoA, ammoDelta);
+            st.oilA = addAndClampNonNegative(st.oilA, oilDelta);
+            return true;
+        }
+        if (st.teamB.name.equals(teamName)) {
+            st.pointsB = addAndClampNonNegative(st.pointsB, victoryPointsDelta);
+            st.ammoB = addAndClampNonNegative(st.ammoB, ammoDelta);
+            st.oilB = addAndClampNonNegative(st.oilB, oilDelta);
+            return true;
+        }
+        return false;
     }
 
     @SubscribeEvent
@@ -276,6 +324,28 @@ public final class VictoryMatchManager {
             hash = 31 * hash + (p.capturing ? 1 : 0);
         }
         return hash;
+    }
+
+    private static int addAndClampNonNegative(int base, int delta) {
+        long value = (long) base + delta;
+        if (value <= 0L) {
+            return 0;
+        }
+        if (value >= Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) value;
+    }
+
+    private static float addAndClampNonNegative(float base, float delta) {
+        double value = base + (double) delta;
+        if (value <= 0D) {
+            return 0F;
+        }
+        if (value >= Float.MAX_VALUE) {
+            return Float.MAX_VALUE;
+        }
+        return (float) value;
     }
 }
 

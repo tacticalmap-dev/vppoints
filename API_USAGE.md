@@ -16,3 +16,14 @@ Host mod (map/teleport side) should:
 
 API entry:
 - `src/main/java/com/flowingsun/vppoints/api/VpPointsApi.java`
+
+Resource APIs (mapId + teamName):
+- `resourceOf(mapId, teamName)` query current victory points / ammo / oil
+- `adjustTeamResources(mapId, teamName, victoryPointsDelta, ammoDelta, oilDelta)` signed delta
+- `addVictoryPoints(...)` / `subVictoryPoints(...)`
+- `addAmmo(...)` / `subAmmo(...)`
+- `addOil(...)` / `subOil(...)`
+
+Notes:
+- all subtract APIs clamp to 0 minimum (never negative)
+- add/sub APIs require non-negative amount input
