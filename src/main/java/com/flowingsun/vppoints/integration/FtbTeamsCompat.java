@@ -1,27 +1,54 @@
 package com.flowingsun.vppoints.integration;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.ServerScoreboard;
+import net.minecraft.world.scores.PlayerTeam;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Optional FTB Teams integration implemented via reflection to keep hard dependency optional.
+ * Team integration bridge:
+ * - Prefer FTB Teams when available
+ * - Fallback to vanilla scoreboard teams when FTB Teams is absent
  */
 public final class FtbTeamsCompat {
     public static final FtbTeamsCompat INSTANCE = new FtbTeamsCompat();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private final Map<String, Set<UUID>> createdPartyTeamIdsByMap = new HashMap<>();
+    private final Map<String, VanillaMapTeamState> vanillaTeamStateByMap = new HashMap<>();
 
     public void syncMapTeams(String mapId, MinecraftServer server, String teamAName, Set<UUID> teamAPlayers, String teamBName, Set<UUID> teamBPlayers) {
         if (mapId == null || server == null) return;
-        if (!isAvailableAndLoaded()) return;
+        if (isAvailableAndLoaded()) {
+            // Ensure fallback state from previous rounds is cleared when FTB becomes available.
+            disbandMapTeamsByVanilla(mapId, server);
+            syncMapTeamsByFtb(mapId, server, teamAName, teamAPlayers, teamBName, teamBPlayers);
+            return;
+        }
+        // FTB missing: use vanilla scoreboard teams.
+        createdPartyTeamIdsByMap.remove(mapId);
+        syncMapTeamsByVanilla(mapId, server, teamAName, teamAPlayers, teamBName, teamBPlayers);
+    }
 
-        disbandMapTeams(mapId, server);
+    public void disbandMapTeams(String mapId, MinecraftServer server) {
+        if (mapId == null || server == null) return;
+        if (isAvailableAndLoaded()) {
+            disbandMapTeamsByFtb(mapId, server);
+        } else {
+            createdPartyTeamIdsByMap.remove(mapId);
+        }
+        // Always attempt to clear fallback state in case runtime switched paths.
+        disbandMapTeamsByVanilla(mapId, server);
+    }
+
+    private void syncMapTeamsByFtb(String mapId, MinecraftServer server, String teamAName, Set<UUID> teamAPlayers, String teamBName, Set<UUID> teamBPlayers) {
+        disbandMapTeamsByFtb(mapId, server);
         Object manager = manager();
         if (manager == null) return;
 
@@ -35,10 +62,7 @@ public final class FtbTeamsCompat {
         }
     }
 
-    public void disbandMapTeams(String mapId, MinecraftServer server) {
-        if (mapId == null || server == null) return;
-        if (!isAvailableAndLoaded()) return;
-
+    private void disbandMapTeamsByFtb(String mapId, MinecraftServer server) {
         Set<UUID> ids = createdPartyTeamIdsByMap.remove(mapId);
         if (ids == null || ids.isEmpty()) return;
 
@@ -56,6 +80,120 @@ public final class FtbTeamsCompat {
         }
 
         LOGGER.info("FTB Teams disbanded for map '{}': {} temporary parties", mapId, ids.size());
+    }
+
+    private void syncMapTeamsByVanilla(
+            String mapId,
+            MinecraftServer server,
+            String teamAName,
+            Set<UUID> teamAPlayers,
+            String teamBName,
+            Set<UUID> teamBPlayers
+    ) {
+        disbandMapTeamsByVanilla(mapId, server);
+        ServerScoreboard scoreboard = server.getScoreboard();
+        String teamAId = buildVanillaTeamId(mapId, "a");
+        String teamBId = buildVanillaTeamId(mapId, "b");
+
+        PlayerTeam teamA = scoreboard.getPlayerTeam(teamAId);
+        if (teamA == null) {
+            teamA = scoreboard.addPlayerTeam(teamAId);
+        }
+        PlayerTeam teamB = scoreboard.getPlayerTeam(teamBId);
+        if (teamB == null) {
+            teamB = scoreboard.addPlayerTeam(teamBId);
+        }
+        teamA.setDisplayName(Component.literal(safeTeamDisplayName(teamAName, "Team A")));
+        teamB.setDisplayName(Component.literal(safeTeamDisplayName(teamBName, "Team B")));
+
+        VanillaMapTeamState state = new VanillaMapTeamState(teamAId, teamBId);
+        assignPlayersToVanillaTeam(server, scoreboard, teamA, teamAPlayers, state);
+        assignPlayersToVanillaTeam(server, scoreboard, teamB, teamBPlayers, state);
+        vanillaTeamStateByMap.put(mapId, state);
+
+        LOGGER.info("Vanilla teams synced for map '{}': teamA='{}' teamB='{}' players={}",
+                mapId, teamAId, teamBId, state.previousTeamByPlayer.size());
+    }
+
+    private void disbandMapTeamsByVanilla(String mapId, MinecraftServer server) {
+        VanillaMapTeamState state = vanillaTeamStateByMap.remove(mapId);
+        if (state == null) {
+            return;
+        }
+        ServerScoreboard scoreboard = server.getScoreboard();
+        PlayerTeam teamA = scoreboard.getPlayerTeam(state.teamAId);
+        PlayerTeam teamB = scoreboard.getPlayerTeam(state.teamBId);
+
+        for (Map.Entry<UUID, VanillaPlayerSnapshot> e : state.previousTeamByPlayer.entrySet()) {
+            VanillaPlayerSnapshot snap = e.getValue();
+            String entry = snap.entryName();
+            if (entry == null || entry.isBlank()) {
+                continue;
+            }
+
+            PlayerTeam current = scoreboard.getPlayersTeam(entry);
+            if (current != null && (state.teamAId.equals(current.getName()) || state.teamBId.equals(current.getName()))) {
+                scoreboard.removePlayerFromTeam(entry, current);
+            }
+
+            String previousTeamName = snap.previousTeamName();
+            if (previousTeamName != null && !previousTeamName.isBlank()) {
+                PlayerTeam previous = scoreboard.getPlayerTeam(previousTeamName);
+                if (previous != null) {
+                    scoreboard.addPlayerToTeam(entry, previous);
+                }
+            }
+        }
+
+        if (teamA != null) {
+            scoreboard.removePlayerTeam(teamA);
+        }
+        if (teamB != null && teamB != teamA) {
+            scoreboard.removePlayerTeam(teamB);
+        }
+        LOGGER.info("Vanilla teams disbanded for map '{}'", mapId);
+    }
+
+    private void assignPlayersToVanillaTeam(
+            MinecraftServer server,
+            ServerScoreboard scoreboard,
+            PlayerTeam targetTeam,
+            Set<UUID> teamPlayers,
+            VanillaMapTeamState state
+    ) {
+        if (teamPlayers == null || teamPlayers.isEmpty() || targetTeam == null) {
+            return;
+        }
+        for (UUID playerId : teamPlayers) {
+            ServerPlayer player = server.getPlayerList().getPlayer(playerId);
+            if (player == null) {
+                continue;
+            }
+            String entry = player.getScoreboardName();
+            PlayerTeam previous = scoreboard.getPlayersTeam(entry);
+            state.previousTeamByPlayer.putIfAbsent(
+                    playerId,
+                    new VanillaPlayerSnapshot(entry, previous == null ? null : previous.getName())
+            );
+            if (previous != null && previous == targetTeam) {
+                continue;
+            }
+            scoreboard.addPlayerToTeam(entry, targetTeam);
+        }
+    }
+
+    private String buildVanillaTeamId(String mapId, String suffix) {
+        // Team packet uses small name limits; keep deterministic and short.
+        String hex = Integer.toUnsignedString(Objects.hash(mapId, suffix), 16);
+        String id = "vp" + suffix + "_" + hex;
+        return id.length() <= 16 ? id : id.substring(0, 16);
+    }
+
+    private String safeTeamDisplayName(String configuredName, String fallback) {
+        if (configuredName == null || configuredName.isBlank()) {
+            return fallback;
+        }
+        return configuredName;
     }
 
     private void createAndFillParty(
@@ -279,6 +417,20 @@ public final class FtbTeamsCompat {
 
     private boolean bool(Object o) {
         return o instanceof Boolean b && b;
+    }
+
+    private record VanillaPlayerSnapshot(String entryName, String previousTeamName) {
+    }
+
+    private static final class VanillaMapTeamState {
+        final String teamAId;
+        final String teamBId;
+        final Map<UUID, VanillaPlayerSnapshot> previousTeamByPlayer = new HashMap<>();
+
+        private VanillaMapTeamState(String teamAId, String teamBId) {
+            this.teamAId = teamAId;
+            this.teamBId = teamBId;
+        }
     }
 }
 
