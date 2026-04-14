@@ -3,6 +3,7 @@ package com.flowingsun.vppoints;
 import com.flowingsun.vppoints.config.SquadConfig;
 import com.flowingsun.vppoints.match.SquadMatchService;
 import com.flowingsun.vppoints.net.SquadNetwork;
+import com.flowingsun.vppoints.stats.PlayerCombatStatsService;
 import com.flowingsun.vppoints.vp.VictoryMatchManager;
 import com.flowingsun.vppoints.vp.VictoryPointProtection;
 import com.flowingsun.vppoints.vp.VictoryPointRuntime;
@@ -35,6 +36,7 @@ public class VpPointsMod {
         // Runtime services are Forge-event driven.
         MinecraftForge.EVENT_BUS.register(SquadMatchService.INSTANCE);
         MinecraftForge.EVENT_BUS.register(VictoryMatchManager.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(PlayerCombatStatsService.INSTANCE);
         MinecraftForge.EVENT_BUS.register(new VictoryPointProtection());
     }
 

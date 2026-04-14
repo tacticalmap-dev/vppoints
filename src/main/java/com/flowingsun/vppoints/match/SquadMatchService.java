@@ -4,6 +4,7 @@ import com.flowingsun.vppoints.config.SquadConfig;
 import com.flowingsun.vppoints.integration.FtbTeamsCompat;
 import com.flowingsun.vppoints.net.MatchHudClearS2C;
 import com.flowingsun.vppoints.net.SquadNetwork;
+import com.flowingsun.vppoints.stats.PlayerCombatStatsService;
 import com.flowingsun.vppoints.vp.VictoryMatchManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -167,6 +168,7 @@ public final class SquadMatchService {
         }
 
         VictoryMatchManager.INSTANCE.startMatch(match.view());
+        PlayerCombatStatsService.INSTANCE.onMatchStarted(match.mapId, Set.copyOf(teamA), Set.copyOf(teamB));
         if (req.server() != null) {
             FtbTeamsCompat.INSTANCE.syncMapTeams(match.mapId, req.server(), match.teamA, teamA, match.teamB, teamB);
         }
@@ -189,6 +191,13 @@ public final class SquadMatchService {
             outOfBoundsDeadlineTickByPlayer.remove(uuid);
         }
 
+        PlayerCombatStatsService.INSTANCE.onMatchEnded(
+                match.mapId,
+                match.mapName,
+                server,
+                Set.copyOf(match.playersA),
+                Set.copyOf(match.playersB)
+        );
         VictoryMatchManager.INSTANCE.resetMap(match.mapId);
         if (server != null) {
             FtbTeamsCompat.INSTANCE.disbandMapTeams(match.mapId, server);
