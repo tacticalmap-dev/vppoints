@@ -36,6 +36,7 @@ public class VpPointsMod {
         MinecraftForge.EVENT_BUS.register(SquadMatchService.INSTANCE);
         MinecraftForge.EVENT_BUS.register(VictoryMatchManager.INSTANCE);
         MinecraftForge.EVENT_BUS.register(new VictoryPointProtection());
+        MinecraftForge.EVENT_BUS.register(com.flowingsun.vppoints.cohmode.CohStatsManager.INSTANCE);
     }
 
     private void onCreativeTab(BuildCreativeModeTabContentsEvent event) {
