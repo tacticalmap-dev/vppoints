@@ -15,7 +15,7 @@ public class HudConfigScreen extends Screen {
     private OptionsList list;
 
     public HudConfigScreen(Screen parent) {
-        super(Component.literal("SquadPattern HUD Config"));
+        super(Component.literal("WarPattern HUD Config"));
         this.parent = parent;
     }
 

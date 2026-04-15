@@ -27,3 +27,14 @@ Resource APIs (mapId + teamName):
 Notes:
 - all subtract APIs clamp to 0 minimum (never negative)
 - add/sub APIs require non-negative amount input
+
+Combat stats APIs:
+- `globalCombatOf(server, playerId)` -> persistent global kills/assists/deaths + KD
+- `lastMatchCombatOf(server, playerId)` -> last finished match kills/assists/deaths + KD
+- `combatSummaryOf(server, playerId)` -> one-call summary endpoint (global + last match)
+
+Combat tracking rules:
+- tracks player kills / assists / deaths during active VP matches
+- assist window is configurable by `assistWindowSeconds` (default 10)
+- last-match stats are written when `endMatch(...)` is called
+- combat stats file path: `<server_root>/vppoints/player_combat_stats.dat` (not in world folder)

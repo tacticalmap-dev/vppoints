@@ -1,12 +1,14 @@
 package com.flowingsun.vppoints.api;
 
 import com.flowingsun.vppoints.match.SquadMatchService;
+import com.flowingsun.vppoints.stats.PlayerCombatStatsService;
 import com.flowingsun.vppoints.vp.VictoryMatchManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Public API surface for host mods.
@@ -105,5 +107,26 @@ public final class VpPointsApi {
             return false;
         }
         return adjustTeamResources(mapId, teamName, 0F, 0, -amount);
+    }
+
+    /**
+     * Global K/A/D + global KD for this player (persistent across all matches).
+     */
+    public static Optional<PlayerCombatStatsService.GlobalCombatView> globalCombatOf(MinecraftServer server, UUID playerId) {
+        return PlayerCombatStatsService.INSTANCE.globalCombatOf(server, playerId);
+    }
+
+    /**
+     * Last finished match K/A/D + KD for this player.
+     */
+    public static Optional<PlayerCombatStatsService.LastMatchCombatView> lastMatchCombatOf(MinecraftServer server, UUID playerId) {
+        return PlayerCombatStatsService.INSTANCE.lastMatchCombatOf(server, playerId);
+    }
+
+    /**
+     * API endpoint: exposes global K/A/D/KD and last-match K/A/D/KD in one call.
+     */
+    public static Optional<PlayerCombatStatsService.PlayerCombatSummaryView> combatSummaryOf(MinecraftServer server, UUID playerId) {
+        return PlayerCombatStatsService.INSTANCE.combatSummaryOf(server, playerId);
     }
 }

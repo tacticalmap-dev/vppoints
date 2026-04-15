@@ -14,6 +14,7 @@ public final class SquadConfig {
     public static final ForgeConfigSpec.IntValue INITIAL_AMMO;
     public static final ForgeConfigSpec.IntValue INITIAL_OIL;
     public static final ForgeConfigSpec.IntValue OUT_OF_BOUNDS_COUNTDOWN_SECONDS;
+    public static final ForgeConfigSpec.IntValue ASSIST_WINDOW_SECONDS;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_VICTORY;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_NORMAL;
@@ -50,6 +51,8 @@ public final class SquadConfig {
                 .defineInRange("initialOil", 0, 0, 1000000);
         OUT_OF_BOUNDS_COUNTDOWN_SECONDS = common.comment("Seconds allowed outside map bounds before death")
                 .defineInRange("outOfBoundsCountdownSeconds", 30, 1, 600);
+        ASSIST_WINDOW_SECONDS = common.comment("Seconds after damage during which a helper is counted as an assist")
+                .defineInRange("assistWindowSeconds", 10, 1, 300);
         CAPTURE_SECONDS = common.comment("Seconds required for 1 player advantage to fully capture a neutral point")
                 .defineInRange("captureSeconds", 15.0D, 1.0D, 300.0D);
         CAPTURE_SECONDS_VICTORY = common.comment("Seconds required to fully capture a Victory point with 1 player advantage (-1 uses captureSeconds)")
