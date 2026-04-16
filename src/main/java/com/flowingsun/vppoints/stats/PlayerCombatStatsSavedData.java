@@ -63,10 +63,7 @@ public final class PlayerCombatStatsSavedData {
         ListTag globalList = tag.getList(KEY_GLOBAL, Tag.TAG_COMPOUND);
         for (int i = 0; i < globalList.size(); i++) {
             CompoundTag row = globalList.getCompound(i);
-            UUID playerId = parseUuid(row.getString(KEY_PLAYER));
-            if (playerId == null) {
-                continue;
-            }
+            UUID playerId = row.getUUID(KEY_PLAYER);
             long kills = Math.max(0L, row.getLong(KEY_KILLS));
             long assists = Math.max(0L, row.getLong(KEY_ASSISTS));
             long deaths = Math.max(0L, row.getLong(KEY_DEATHS));
@@ -76,10 +73,7 @@ public final class PlayerCombatStatsSavedData {
         ListTag lastMatchList = tag.getList(KEY_LAST_MATCH, Tag.TAG_COMPOUND);
         for (int i = 0; i < lastMatchList.size(); i++) {
             CompoundTag row = lastMatchList.getCompound(i);
-            UUID playerId = parseUuid(row.getString(KEY_PLAYER));
-            if (playerId == null) {
-                continue;
-            }
+            UUID playerId = row.getUUID(KEY_PLAYER);
             String mapId = row.getString(KEY_MAP_ID);
             String mapName = row.getString(KEY_MAP_NAME);
             int kills = Math.max(0, row.getInt(KEY_KILLS));
@@ -95,7 +89,7 @@ public final class PlayerCombatStatsSavedData {
         ListTag globalList = new ListTag();
         for (Map.Entry<UUID, GlobalCounter> e : globalByPlayer.entrySet()) {
             CompoundTag row = new CompoundTag();
-            row.putString(KEY_PLAYER, e.getKey().toString());
+            row.putUUID(KEY_PLAYER, e.getKey());
             row.putLong(KEY_KILLS, Math.max(0L, e.getValue().kills()));
             row.putLong(KEY_ASSISTS, Math.max(0L, e.getValue().assists()));
             row.putLong(KEY_DEATHS, Math.max(0L, e.getValue().deaths()));
@@ -106,7 +100,7 @@ public final class PlayerCombatStatsSavedData {
         ListTag lastMatchList = new ListTag();
         for (Map.Entry<UUID, LastMatchCounter> e : lastMatchByPlayer.entrySet()) {
             CompoundTag row = new CompoundTag();
-            row.putString(KEY_PLAYER, e.getKey().toString());
+            row.putUUID(KEY_PLAYER, e.getKey());
             LastMatchCounter c = e.getValue();
             row.putString(KEY_MAP_ID, c.mapId() == null ? "" : c.mapId());
             row.putString(KEY_MAP_NAME, c.mapName() == null ? "" : c.mapName());
