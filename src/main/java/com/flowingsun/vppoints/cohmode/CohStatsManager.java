@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages player KD statistics with JSON persistence.
  */
 public class CohStatsManager {
-    public static final CohStatsManager INSTANCE = new CohStatsManager();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String FILE_NAME = "cohmode_stats.json";
+    public static final CohStatsManager INSTANCE = new CohStatsManager();
 
     public record PlayerData(long kills, long deaths) {
         public double getKD() {
