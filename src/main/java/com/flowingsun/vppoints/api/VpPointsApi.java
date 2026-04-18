@@ -12,7 +12,7 @@ import java.util.UUID;
 
 /**
  * Public API surface for host mods.
- *
+ * <p>
  * Host mod flow:
  * 1) teleport players to match world/spawn externally
  * 2) call {@link #startMatch(SquadMatchService.StartMatchRequest)}
@@ -20,8 +20,6 @@ import java.util.UUID;
  * 4) after post-match teleport, call {@link #endMatch(String, MinecraftServer, String)}
  */
 public final class VpPointsApi {
-    private VpPointsApi() {
-    }
 
     public static void setMatchFinishListener(SquadMatchService.MatchFinishListener listener) {
         SquadMatchService.INSTANCE.setMatchFinishListener(listener);

@@ -3,9 +3,7 @@ package com.flowingsun.vppoints.cohmode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -73,7 +71,8 @@ public class CohStatsManager {
         if (!file.exists()) return;
 
         try (FileReader reader = new FileReader(file)) {
-            Type type = new TypeToken<HashMap<UUID, PlayerData>>() {}.getType();
+            Type type = new TypeToken<HashMap<UUID, PlayerData>>() {
+            }.getType();
             Map<UUID, PlayerData> loaded = GSON.fromJson(reader, type);
             if (loaded != null) stats.putAll(loaded);
         } catch (IOException e) {

@@ -8,13 +8,15 @@ import java.util.*;
  */
 public class CohMatchmaker {
 
-    public record QueueEntry(UUID playerId, CohClass preferredClass) {}
+    public record QueueEntry(UUID playerId, CohClass preferredClass) {
+    }
 
     public record MatchResult(
             List<UUID> blueTeam,
             List<UUID> redTeam,
             Map<UUID, CohClass> assignedClasses
-    ) {}
+    ) {
+    }
 
     /**
      * Balances a list of players into two teams.

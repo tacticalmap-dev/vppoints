@@ -6,7 +6,6 @@ import com.flowingsun.vppoints.net.MatchHudClearS2C;
 import com.flowingsun.vppoints.net.SquadNetwork;
 import com.flowingsun.vppoints.stats.PlayerCombatStatsService;
 import com.flowingsun.vppoints.vp.VictoryMatchManager;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Runtime match state service for VP systems.
- *
+ * <p>
  * Responsibilities:
  * - active match registry and player assignment
  * - out-of-bounds countdown/kill rule
@@ -57,7 +56,9 @@ public final class SquadMatchService {
     ) {
     }
 
-    /** Horizontal bounds used for out-of-bounds checks. */
+    /**
+     * Horizontal bounds used for out-of-bounds checks.
+     */
     public record MatchBounds(int minX, int maxX, int minZ, int maxZ) {
         public MatchBounds {
             if (minX > maxX || minZ > maxZ) {
@@ -66,7 +67,9 @@ public final class SquadMatchService {
         }
     }
 
-    /** Request object used by host mods to start one runtime match instance. */
+    /**
+     * Request object used by host mods to start one runtime match instance.
+     */
     public record StartMatchRequest(
             MinecraftServer server,
             String mapId,

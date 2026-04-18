@@ -19,7 +19,8 @@ import org.joml.Matrix4f;
  * World-space label renderer for capture points.
  */
 public class VictoryPointBER implements BlockEntityRenderer<VictoryPointBlockEntity> {
-    public VictoryPointBER(BlockEntityRendererProvider.Context ignored) {}
+    public VictoryPointBER(BlockEntityRendererProvider.Context ignored) {
+    }
 
     @Override
     public void render(VictoryPointBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay) {
