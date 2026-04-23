@@ -15,6 +15,8 @@ public final class SquadConfig {
     public static final ForgeConfigSpec.IntValue INITIAL_OIL;
     public static final ForgeConfigSpec.IntValue OUT_OF_BOUNDS_COUNTDOWN_SECONDS;
     public static final ForgeConfigSpec.IntValue ASSIST_WINDOW_SECONDS;
+    public static final ForgeConfigSpec.IntValue SHOP_MAX_PURCHASE_QUANTITY;
+    public static final ForgeConfigSpec.BooleanValue SHOP_REQUIRE_WARPATTERN_FOR_ROLE_CHECKS;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_VICTORY;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_NORMAL;
@@ -39,6 +41,7 @@ public final class SquadConfig {
     public static final ForgeConfigSpec.DoubleValue HUD_TOP_Y;
     public static final ForgeConfigSpec.DoubleValue HUD_CENTER_Y;
     public static final ForgeConfigSpec.DoubleValue HUD_SCALE;
+    public static final ForgeConfigSpec.IntValue SHOP_DEFAULT_PURCHASE_QUANTITY;
 
     static {
         // Shared server/common gameplay knobs.
@@ -53,6 +56,10 @@ public final class SquadConfig {
                 .defineInRange("outOfBoundsCountdownSeconds", 30, 1, 600);
         ASSIST_WINDOW_SECONDS = common.comment("Seconds after damage during which a helper is counted as an assist")
                 .defineInRange("assistWindowSeconds", 10, 1, 300);
+        SHOP_MAX_PURCHASE_QUANTITY = common.comment("Maximum quantity allowed per single shop purchase action")
+                .defineInRange("shopMaxPurchaseQuantity", 64, 1, 100000);
+        SHOP_REQUIRE_WARPATTERN_FOR_ROLE_CHECKS = common.comment("If true, role/commander restrictions require WarPattern role data and deny when unavailable")
+                .define("shopRequireWarpatternForRoleChecks", true);
         CAPTURE_SECONDS = common.comment("Seconds required for 1 player advantage to fully capture a neutral point")
                 .defineInRange("captureSeconds", 15.0D, 1.0D, 300.0D);
         CAPTURE_SECONDS_VICTORY = common.comment("Seconds required to fully capture a Victory point with 1 player advantage (-1 uses captureSeconds)")
@@ -106,6 +113,8 @@ public final class SquadConfig {
                 .defineInRange("hudCenterY", 0.08D, 0.0D, 1.0D);
         HUD_SCALE = client.comment("HUD scale")
                 .defineInRange("hudScale", 1.0D, 0.5D, 3.0D);
+        SHOP_DEFAULT_PURCHASE_QUANTITY = client.comment("Default quantity prefilled in team shop purchase UI")
+                .defineInRange("shopDefaultPurchaseQuantity", 1, 1, 100000);
         CLIENT_SPEC = client.build();
     }
 }

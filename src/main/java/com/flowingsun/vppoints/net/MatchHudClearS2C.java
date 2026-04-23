@@ -1,7 +1,9 @@
 package com.flowingsun.vppoints.net;
 
-import com.flowingsun.vppoints.client.ClientHudState;
+import com.flowingsun.vppoints.client.ClientPacketHooks;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -19,7 +21,10 @@ public class MatchHudClearS2C {
     }
 
     public static void handle(MatchHudClearS2C pkt, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(ClientHudState::clear);
+        ctx.get().enqueueWork(() -> DistExecutor.unsafeRunWhenOn(
+                Dist.CLIENT,
+                () -> ClientPacketHooks::handleHudClear
+        ));
         ctx.get().setPacketHandled(true);
     }
 }

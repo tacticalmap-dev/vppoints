@@ -4,6 +4,7 @@ import com.flowingsun.vppoints.config.SquadConfig;
 import com.flowingsun.vppoints.integration.FtbTeamsCompat;
 import com.flowingsun.vppoints.net.MatchHudClearS2C;
 import com.flowingsun.vppoints.net.SquadNetwork;
+import com.flowingsun.vppoints.shop.TeamShopService;
 import com.flowingsun.vppoints.stats.PlayerCombatStatsService;
 import com.flowingsun.vppoints.vp.VictoryMatchManager;
 import net.minecraft.resources.ResourceLocation;
@@ -201,6 +202,7 @@ public final class SquadMatchService {
                 Set.copyOf(match.playersA),
                 Set.copyOf(match.playersB)
         );
+        TeamShopService.INSTANCE.onMatchEnded(match.mapId);
         VictoryMatchManager.INSTANCE.resetMap(match.mapId);
         if (server != null) {
             FtbTeamsCompat.INSTANCE.disbandMapTeams(match.mapId, server);

@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 public final class SquadNetwork {
 
-    private static final String PROTOCOL = "2";
+    private static final String PROTOCOL = "3";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(VpPointsMod.MOD_ID, "main"),
             () -> PROTOCOL,
@@ -42,6 +42,38 @@ public final class SquadNetwork {
                 MatchHudClearS2C::handle,
                 Optional.of(OptionalDirection.PLAY_TO_CLIENT)
         );
+        CHANNEL.registerMessage(
+                id++,
+                OpenTeamShopC2S.class,
+                OpenTeamShopC2S::encode,
+                OpenTeamShopC2S::decode,
+                OpenTeamShopC2S::handle,
+                Optional.of(OptionalDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                id++,
+                BuyTeamShopEntryC2S.class,
+                BuyTeamShopEntryC2S::encode,
+                BuyTeamShopEntryC2S::decode,
+                BuyTeamShopEntryC2S::handle,
+                Optional.of(OptionalDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                id++,
+                TeamShopApprovalDecisionC2S.class,
+                TeamShopApprovalDecisionC2S::encode,
+                TeamShopApprovalDecisionC2S::decode,
+                TeamShopApprovalDecisionC2S::handle,
+                Optional.of(OptionalDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                id++,
+                TeamShopSyncS2C.class,
+                TeamShopSyncS2C::encode,
+                TeamShopSyncS2C::decode,
+                TeamShopSyncS2C::handle,
+                Optional.of(OptionalDirection.PLAY_TO_CLIENT)
+        );
     }
 
     public static void sendTo(ServerPlayer player, Object packet) {
@@ -50,6 +82,7 @@ public final class SquadNetwork {
 
     private static final class OptionalDirection {
         private static final NetworkDirection PLAY_TO_CLIENT = NetworkDirection.PLAY_TO_CLIENT;
+        private static final NetworkDirection PLAY_TO_SERVER = NetworkDirection.PLAY_TO_SERVER;
     }
 }
 
