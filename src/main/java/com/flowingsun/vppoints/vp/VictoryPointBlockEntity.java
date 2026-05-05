@@ -123,7 +123,9 @@ public class VictoryPointBlockEntity extends BlockEntity {
             } else {
                 capturing = totalPlayers > 0 && progressSigned > -1F;
             }
-            delta = base * diff;
+            int maxMultiplier = Math.max(1, SquadConfig.CAPTURE_MAX_PLAYERS_MULTIPLIER.get());
+            int multiplier = Math.min(Math.abs(diff), maxMultiplier);
+            delta = base * multiplier * Integer.signum(diff);
         }
 
         float prev = progressSigned;

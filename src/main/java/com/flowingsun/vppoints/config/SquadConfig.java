@@ -22,6 +22,7 @@ public final class SquadConfig {
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_NORMAL;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_AMMO;
     public static final ForgeConfigSpec.DoubleValue CAPTURE_SECONDS_OIL;
+    public static final ForgeConfigSpec.IntValue CAPTURE_MAX_PLAYERS_MULTIPLIER;
     public static final ForgeConfigSpec.DoubleValue DRAIN_PER_MINUTE;
     public static final ForgeConfigSpec.IntValue RESOURCE_CYCLE_SECONDS;
     public static final ForgeConfigSpec.IntValue VICTORY_POINT_AMMO_PER_CYCLE;
@@ -70,6 +71,8 @@ public final class SquadConfig {
                 .defineInRange("captureSecondsAmmo", -1.0D, -1.0D, 300.0D);
         CAPTURE_SECONDS_OIL = common.comment("Seconds required to fully capture an Oil point with 1 player advantage (-1 uses captureSeconds)")
                 .defineInRange("captureSecondsOil", -1.0D, -1.0D, 300.0D);
+        CAPTURE_MAX_PLAYERS_MULTIPLIER = common.comment("Maximum player advantage multiplier for capture speed (e.g. 3 means 3+ players capture at the same max speed)")
+                .defineInRange("captureMaxPlayersMultiplier", 3, 1, 100);
         DRAIN_PER_MINUTE = common.comment("Point drain applied to enemy side for each owned point per minute")
                 .defineInRange("drainPerMinute", 25.0D, 0.1D, 1000.0D);
         RESOURCE_CYCLE_SECONDS = common.comment("Resource production cycle in seconds")
